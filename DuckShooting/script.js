@@ -30,7 +30,7 @@ let colorList = [
     "#034732",
 ];
 
-let gameSpeed = 1000 / 24;
+let gameSpeed = 1000 / 60;
 let interval = setInterval(gameHandler, gameSpeed);
 document.getElementById("stopButton").addEventListener("click", () => {
     clearInterval(interval);
@@ -38,13 +38,15 @@ document.getElementById("stopButton").addEventListener("click", () => {
 });
 
 let lastSpawnTime = Date.now();
-const SPAWN_INTERVAL = 2000; // 0.4 secs
+const SPAWN_INTERVAL = 3600; // ms
 let deltaTime, currentTime;
 
 // Physic variables
-let gravity = 3;
+let gravity = 2;
 let groundFriction = 0.9;
 let horizontalFriction = 0.9;
+let MAX_BOUNCE_VERTICAL = 6;
+let MAX_BOUNCE_HORIZONTAL = 6;
 
 // Interactions
 let RightPressed = false;
@@ -54,9 +56,6 @@ let DownPressed = false;
 let SpacePressed = false;
 
 class Ball {
-    MAX_BOUNCE_VERTICAL = 4;
-    MAX_BOUNCE_HORIZONTAL = 4;
-
     constructor(id, x, y, radius, color, moveX, moveY) {
         this.id = id;
         this.x = x;
@@ -81,7 +80,7 @@ class Ball {
         // Ground (no sky limit)
         if (this.y + this.radius > canvas.height) {
             this.verticalBounceCount += 1;
-            if (this.verticalBounceCount <= this.MAX_BOUNCE_VERTICAL) {
+            if (this.verticalBounceCount <= MAX_BOUNCE_VERTICAL) {
                 this.y = canvas.height - this.radius;
                 this.moveY = -this.moveY * groundFriction; // Bounce with some energy loss
             } else {
@@ -96,7 +95,7 @@ class Ball {
             (this.x <= this.radius && this.moveX < 0)
         ) {
             this.horizontalBounceCount += 1;
-            if (this.horizontalBounceCount <= this.MAX_BOUNCE_HORIZONTAL) {
+            if (this.horizontalBounceCount <= MAX_BOUNCE_HORIZONTAL) {
                 this.moveX = -this.moveX * horizontalFriction;
             } else {
                 this.removeSelf(ballList);
@@ -107,6 +106,7 @@ class Ball {
         // updateStats
         let row = document.getElementById(`ball-${this.id}`);
         row.cells[1].innerText = `X: ${this.x} - Y: ${this.y}`;
+        // row.cells[2].innerText = `Y: ${this.y}`;
     }
 
     draw() {
@@ -155,7 +155,8 @@ function gameHandler() {
 
     if (Date.now() - lastSpawnTime >= SPAWN_INTERVAL) {
         spawnBall();
-        console.log("spawn");
+        spawn5Balls();
+        console.log("spawned 1");
         lastSpawnTime = Date.now();
     }
 }
@@ -166,6 +167,7 @@ function spawn5Balls() {
     spawnBall();
     spawnBall();
     spawnBall();
+    console.log("spawned 5");
 }
 
 let nextBallId = 1;

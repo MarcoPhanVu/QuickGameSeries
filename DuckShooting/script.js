@@ -2,6 +2,8 @@ const canvas = document.getElementById("canvas");
 const painter = canvas.getContext("2d");
 
 const debugTable = document.getElementById("debug-table");
+const cursorPosXValue = document.getElementById("cursorPosXValue");
+const cursorPosYValue = document.getElementById("cursorPosYValue");
 console.log(debugTable);
 
 let colorList = [
@@ -31,13 +33,13 @@ let colorList = [
 let gameSpeed = 1000 / 60;
 let interval = setInterval(gameHandler, gameSpeed);
 let lastSpawnTime = Date.now();
-const SPAWN_INTERVAL = 2400; // 5 secs
+const SPAWN_INTERVAL = 400; // 5 secs
 let deltaTime, currentTime;
 
 // Physic variables
-let gravity = 1;
-let groundFriction = 0.8;
-let horizontalFriction = 1;
+let gravity = 3;
+let groundFriction = 0.9;
+let horizontalFriction = 0.9;
 
 // Interactions
 let RightPressed = false;
@@ -47,8 +49,8 @@ let DownPressed = false;
 let SpacePressed = false;
 
 class Ball {
-    MAX_BOUNCE_VERTICAL = 10;
-    MAX_BOUNCE_HORIZONTAL = 6;
+    MAX_BOUNCE_VERTICAL = 4;
+    MAX_BOUNCE_HORIZONTAL = 4;
 
     constructor(x, y, radius, color, moveX, moveY) {
         this.x = x;
@@ -141,8 +143,8 @@ function spawnBall() {
             RandomFromMinToMax(ballRadius, canvas.height * 0.6), // Y possition
             ballRadius,
             colorList[RandomFromMinToMax(0, colorList.length)], // color
-            -RandomFromMinToMax(5, 32), // X velocity
-            -RandomFromMinToMax(5, 32), // Y velocity
+            RandomFromMinToMax(-32, 32), // X velocity
+            RandomFromMinToMax(-5, 32), // Y velocity
         ),
     );
 }
@@ -157,6 +159,7 @@ function drawCursor(cursor) {
         Math.PI * 2,
         false,
     );
+    // Inner aim
     painter.arc(cursor.position.x, cursor.position.y, 5, 0, Math.PI * 2);
     painter.fillStyle = cursor.color;
     painter.stroke();
@@ -181,6 +184,28 @@ function updateCursor() {
     if (SpacePressed) {
         // console.log("shot");
         checkBallInCursor();
+    }
+
+    // Collisions
+    // Vertical bounds
+    // cursorPosXValue.innerText = cursor.
+    if (cursor.position.y + cursor.radius >= canvas.height) {
+        cursor.position.y = canvas.height - cursor.radius;
+        console.log("bound reached");
+    }
+
+    if (cursor.position.y - cursor.radius <= 0) {
+        cursor.position.y = cursor.radius;
+    }
+
+    // Left and Right Walls
+    if (cursor.position.x + cursor.radius >= canvas.width) {
+        cursor.position.x = canvas.width - cursor.radius;
+        console.log("bound reached");
+    }
+
+    if (cursor.position.x - cursor.radius <= 0) {
+        cursor.position.x = cursor.radius;
     }
 }
 

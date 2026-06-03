@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>GravityEngine</title>
+        <title>DuckShooting</title>
 
         <link rel="stylesheet" href="./style.css" />
     </head>
@@ -14,26 +14,38 @@
             <table id="debug-table">
                 <tr>
                     <th>
-                        <p class="object-name" id="obj1">objectName</p>
+                        <p class="object-name" id="cursorPosXLabel">
+                            cursorPosX
+                        </p>
                     </th>
                     <th>
-                        <p class="state-value" id="state1">stateValue</p>
-                    </th>
-                </tr>
-                <tr>
-                    <th>
-                        <p class="object-name" id="obj2">objectName</p>
-                    </th>
-                    <th>
-                        <p class="state-value" id="state2">stateValue</p>
+                        <p class="state-value" id="cursorPosXValue">
+                            cursorPosXValue
+                        </p>
                     </th>
                 </tr>
                 <tr>
                     <th>
-                        <p class="object-name" id="obj3">objectName</p>
+                        <p class="object-name" id="cursorPosYLabel">
+                            cursorPosY
+                        </p>
                     </th>
                     <th>
-                        <p class="state-value" id="state3">stateValue</p>
+                        <p class="state-value" id="cursorPosYValue">
+                            cursorPosYValue
+                        </p>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <p class="object-name" id="cursorPosYLabel">
+                            cursorPosY
+                        </p>
+                    </th>
+                    <th>
+                        <p class="state-value" id="cursorPosYValue">
+                            cursorPosYValue
+                        </p>
                     </th>
                 </tr>
                 <tr>
@@ -45,6 +57,7 @@
                     </th>
                 </tr>
             </table>
+            <button onclick="spawnBall()">Spawn ball</button>
         </div>
         <script src="./script.js"></script>
     </body>

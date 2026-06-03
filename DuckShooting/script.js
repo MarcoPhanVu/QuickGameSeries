@@ -30,10 +30,15 @@ let colorList = [
     "#034732",
 ];
 
-let gameSpeed = 1000 / 60;
+let gameSpeed = 1000 / 24;
 let interval = setInterval(gameHandler, gameSpeed);
+document.getElementById("stopButton").addEventListener("click", () => {
+    clearInterval(interval);
+    console.log("stopped");
+});
+
 let lastSpawnTime = Date.now();
-const SPAWN_INTERVAL = 400; // 5 secs
+const SPAWN_INTERVAL = 2000; // 0.4 secs
 let deltaTime, currentTime;
 
 // Physic variables
@@ -52,7 +57,8 @@ class Ball {
     MAX_BOUNCE_VERTICAL = 4;
     MAX_BOUNCE_HORIZONTAL = 4;
 
-    constructor(x, y, radius, color, moveX, moveY) {
+    constructor(id, x, y, radius, color, moveX, moveY) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -63,10 +69,13 @@ class Ball {
         this.horizontalBounceCount = 0;
     }
 
-    update() {
+    update(ballList) {
         this.x += this.moveX;
+        this.x = Math.round(this.x);
         this.y += this.moveY;
+        this.y = Math.round(this.y);
         this.moveY += gravity;
+        this.moveY = Math.round(this.moveY);
 
         // Collisions
         // Ground (no sky limit)
@@ -75,18 +84,29 @@ class Ball {
             if (this.verticalBounceCount <= this.MAX_BOUNCE_VERTICAL) {
                 this.y = canvas.height - this.radius;
                 this.moveY = -this.moveY * groundFriction; // Bounce with some energy loss
+            } else {
+                this.removeSelf(ballList);
+                return;
             }
         }
 
         // Left and Right Walls
         if (
-            ((this.x + this.radius > canvas.width && this.moveX > 0) ||
-                (this.x <= this.radius && this.moveX < 0)) &&
-            this.horizontalBounceCount <= this.MAX_BOUNCE_HORIZONTAL
+            (this.x + this.radius > canvas.width && this.moveX > 0) ||
+            (this.x <= this.radius && this.moveX < 0)
         ) {
             this.horizontalBounceCount += 1;
-            this.moveX = -this.moveX * horizontalFriction;
+            if (this.horizontalBounceCount <= this.MAX_BOUNCE_HORIZONTAL) {
+                this.moveX = -this.moveX * horizontalFriction;
+            } else {
+                this.removeSelf(ballList);
+                return;
+            }
         }
+
+        // updateStats
+        let row = document.getElementById(`ball-${this.id}`);
+        row.cells[1].innerText = `X: ${this.x} - Y: ${this.y}`;
     }
 
     draw() {
@@ -97,12 +117,17 @@ class Ball {
         painter.fill();
         painter.closePath();
     }
+
+    removeSelf(ballList) {
+        let ballIndex = ballList.indexOf(this);
+        if (ballIndex >= 0) {
+            ballList.splice(ballIndex, 1);
+            removeBallRow(this);
+        }
+    }
 }
 
 let ballList = [];
-// ballList.push(new Ball(200, 40, 40, "blue", 10, -10));
-// ballList.push(new Ball(250, 200, 45, "red", -10, -40));
-// ballList.push(new Ball(150, 10, 50, "orange", 20, -30));
 
 let cursor = {
     position: {
@@ -125,7 +150,7 @@ function gameHandler() {
 
     for (let i = 0; i < ballList.length; i++) {
         ballList[i].draw();
-        ballList[i].update();
+        ballList[i].update(ballList);
     }
 
     if (Date.now() - lastSpawnTime >= SPAWN_INTERVAL) {
@@ -135,18 +160,29 @@ function gameHandler() {
     }
 }
 
+function spawn5Balls() {
+    spawnBall();
+    spawnBall();
+    spawnBall();
+    spawnBall();
+    spawnBall();
+}
+
+let nextBallId = 1;
 function spawnBall() {
     let ballRadius = RandomFromMinToMax(30, 50);
-    ballList.push(
-        new Ball(
-            RandomFromMinToMax(ballRadius, canvas.width * 0.8), // X possition
-            RandomFromMinToMax(ballRadius, canvas.height * 0.6), // Y possition
-            ballRadius,
-            colorList[RandomFromMinToMax(0, colorList.length)], // color
-            RandomFromMinToMax(-32, 32), // X velocity
-            RandomFromMinToMax(-5, 32), // Y velocity
-        ),
+    let newBall = new Ball(
+        nextBallId++,
+        RandomFromMinToMax(ballRadius, canvas.width * 0.8), // X possition
+        RandomFromMinToMax(ballRadius, canvas.height * 0.6), // Y possition
+        ballRadius,
+        colorList[RandomFromMinToMax(0, colorList.length)], // color
+        RandomFromMinToMax(-32, 32), // X velocity
+        RandomFromMinToMax(-5, 32), // Y velocity
     );
+
+    addBallRow(newBall);
+    ballList.push(newBall);
 }
 
 function drawCursor(cursor) {
@@ -187,8 +223,9 @@ function updateCursor() {
     }
 
     // Collisions
+    cursorPosXValue.innerText = cursor.position.x;
+    cursorPosYValue.innerHTML = cursor.position.y;
     // Vertical bounds
-    // cursorPosXValue.innerText = cursor.
     if (cursor.position.y + cursor.radius >= canvas.height) {
         cursor.position.y = canvas.height - cursor.radius;
         console.log("bound reached");
@@ -209,9 +246,9 @@ function updateCursor() {
     }
 }
 
-function randomBallSpawn() {}
-
-function updateStatsTable() {}
+function checkBallInCursor() {
+    //
+}
 
 function RandomFromMinToMax(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -260,4 +297,18 @@ function KeyReleasedHandler(k) {
     if (k.key == " ") {
         SpacePressed = false;
     }
+}
+
+function addBallRow(ball) {
+    let row = debugTable.insertRow();
+    row.id = `ball-${ball.id}`;
+    let ballID = row.insertCell(0);
+    let ballPos = row.insertCell(1);
+    ballID.innerText = ball.id;
+    ballPos.innerText = `X: ${ball.x} - Y: ${ball.y}`;
+}
+
+function removeBallRow(ball) {
+    let row = document.getElementById(`ball-${ball.id}`);
+    if (row) row.remove();
 }

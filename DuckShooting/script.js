@@ -8,8 +8,8 @@ let interval = setInterval(gameHandler, gameSpeed);
 
 // Physic variables
 let gravity = 1;
-let groundFriction = 0.7;
-let horizontalFriction = 0.7;
+let groundFriction = 0.8;
+let horizontalFriction = 1;
 
 // Interactions
 let RightPressed = false;
@@ -18,18 +18,61 @@ let UpPressed = false;
 let DownPressed = false;
 let SpacePressed = false;
 
-let ball = {
-    x: 100,
-    y: 100,
-    radius: 50,
-    color: "#54ef61",
-    initialMomentum: {
-        x: 8,
-        y: -8,
-    },
-    horizontalBounceCount: 0,
-    verticalBounceCount: 0,
-};
+class Ball {
+    MAX_BOUNCE_VERTICAL = 10;
+    MAX_BOUNCE_HORIZONTAL = 6;
+
+    constructor(x, y, radius, color, moveX, moveY) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.moveX = moveX;
+        this.moveY = moveY;
+        this.verticalBounceCount = 0;
+        this.horizontalBounceCount = 0;
+    }
+
+    update() {
+        this.x += this.moveX;
+        this.y += this.moveY;
+        this.moveY += gravity;
+
+        // Collisions
+        // Ground (no sky limit)
+        if (this.y + this.radius > canvas.height) {
+            this.verticalBounceCount += 1;
+            if (this.verticalBounceCount <= this.MAX_BOUNCE_VERTICAL) {
+                this.y = canvas.height - this.radius;
+                this.moveY = -this.moveY * groundFriction; // Bounce with some energy loss
+            }
+        }
+
+        // Left and Right Walls
+        if (
+            ((this.x + this.radius > canvas.width && this.moveX > 0) ||
+                (this.x <= this.radius && this.moveX < 0)) &&
+            this.horizontalBounceCount <= this.MAX_BOUNCE_HORIZONTAL
+        ) {
+            this.horizontalBounceCount += 1;
+            this.moveX = -this.moveX * horizontalFriction;
+        }
+    }
+
+    draw() {
+        painter.beginPath();
+        painter.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        painter.arc(this.x, this.y, 1, 0, Math.PI * 2);
+        painter.fillStyle = this.color;
+        painter.fill();
+        painter.closePath();
+    }
+}
+
+let ballList = [];
+ballList.push(new Ball(200, 40, 40, "blue", 10, -10));
+ballList.push(new Ball(250, 200, 45, "red", -10, -40));
+ballList.push(new Ball(150, 10, 50, "orange", 20, -30));
 
 let cursor = {
     position: {
@@ -47,46 +90,55 @@ let cursor = {
 
 function gameHandler() {
     painter.clearRect(0, 0, canvas.width, canvas.height);
-    drawBall(ball.x, ball.y, ball.radius, ball.color);
     drawCursor(cursor);
     updateCursor();
+    drawBall();
 }
 
-function drawBall(x, y, radius, color) {
-    // Draw Ball
-    painter.beginPath();
-    painter.arc(x, y, radius, 0, Math.PI * 2, false);
-    painter.arc(x, y, 1, 0, Math.PI * 2);
-    painter.fillStyle = color;
-    painter.fill();
-    painter.closePath();
-
-    // Handle Ball Movement
-    ball.x += ball.initialMomentum.x;
-    ball.y += ball.initialMomentum.y;
-    ball.initialMomentum.y += gravity;
-
-    // Collisions
-    // Ground
-    if (ball.y + ball.radius > canvas.height) {
-        ball.verticalBounceCount += 1;
-        if (ball.verticalBounceCount >= 3) {
-        }
-        ball.y = canvas.height - ball.radius;
-        ball.initialMomentum.y = -ball.initialMomentum.y * groundFriction; // Bounce with some energy loss
+function drawBall() {
+    for (let i = 0; i < ballList.length; i++) {
+        ballList[i].draw();
+        ballList[i].update();
     }
-    // Left and Right Walls
-    if (
-        (ball.x + ball.radius > canvas.width && ball.initialMomentum.x > 0) ||
-        (ball.x <= ball.radius && ball.initialMomentum.x < 0)
-    ) {
-        ball.horizontalBounceCount += 1;
-
-        ball.initialMomentum.x = -ball.initialMomentum.x * horizontalFriction;
-    }
-
-    // console.log(canvas.width);
 }
+
+function spawnBall() {}
+
+// function drawBall(ball) {
+//     // Draw Ball
+//     painter.beginPath();
+//     painter.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
+//     painter.arc(ball.x, ball.y, 1, 0, Math.PI * 2);
+//     painter.fillStyle = ball.color;
+//     painter.fill();
+//     painter.closePath();
+
+//     // Handle Ball Movement
+//     ball.x += ball.moveX;
+//     ball.y += ball.moveX;
+//     ball.moveX += gravity;
+
+//     // Collisions
+//     // Ground
+//     if (ball.y + ball.radius > canvas.height) {
+//         ball.verticalBounceCount += 1;
+//         if (ball.verticalBounceCount >= 3) {
+//         }
+//         ball.y = canvas.height - ball.radius;
+//         ball.moveX = -ball.moveX * groundFriction; // Bounce with some energy loss
+//     }
+//     // Left and Right Walls
+//     if (
+//         (ball.x + ball.radius > canvas.width && ball.moveX > 0) ||
+//         (ball.x <= ball.radius && ball.moveX < 0)
+//     ) {
+//         ball.horizontalBounceCount += 1;
+
+//         ball.moveX = -ball.moveX * horizontalFriction;
+//     }
+
+//     // console.log(canvas.width);
+// }
 
 function drawCursor(cursor) {
     painter.beginPath();
@@ -183,47 +235,10 @@ function KeyReleasedHandler(k) {
 //     y: 100,
 //     radius: 50,
 //     color: "#54ef61",
-//     initialMomentum: {
+//     moveX{
 //         x: 8,
 //         y: -8,
 //     },
 //     horizontalBounceCount: 0,
 //     verticalBounceCount: 0,
 // };
-
-class Ball {
-    constructor(x, y, radius, color, moveX, moveY) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.moveX = moveX;
-        this.moveY = moveY;
-        this.verticalBounceCount = 0;
-        this.horizontalBounceCount = 0;
-    }
-
-    // Handle Ball Movement
-    // ball.x += ball.initialMomentum.x;
-    // ball.y += ball.initialMomentum.y;
-    // ball.initialMomentum.y += gravity;
-
-    // // Collisions
-    // // Ground
-    // if (ball.y + ball.radius > canvas.height) {
-    //     ball.verticalBounceCount += 1;
-    //     if (ball.verticalBounceCount >= 3) {
-    //     }
-    //     ball.y = canvas.height - ball.radius;
-    //     ball.initialMomentum.y = -ball.initialMomentum.y * groundFriction; // Bounce with some energy loss
-    // }
-    // // Left and Right Walls
-    // if (
-    //     (ball.x + ball.radius > canvas.width && ball.initialMomentum.x > 0) ||
-    //     (ball.x <= ball.radius && ball.initialMomentum.x < 0)
-    // ) {
-    //     ball.horizontalBounceCount += 1;
-
-    //     ball.initialMomentum.x = -ball.initialMomentum.x * horizontalFriction;
-    // }
-}

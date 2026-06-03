@@ -3,8 +3,36 @@ const painter = canvas.getContext("2d");
 
 const debugTable = document.getElementById("debug-table");
 console.log(debugTable);
+
+let colorList = [
+    "#EF8354",
+    "#F5E3E0",
+    "#E8B4BC",
+    "#D282A6",
+    "#6E4555",
+    "#3A3238",
+    "#F87575",
+    "#FFA9A3",
+    "#B9E6FF",
+    "#5C95FF",
+    "#FFBA08",
+    "#D00000",
+    "#FAD4C0",
+    "#64B6AC",
+    "#DAC4F7",
+    "#E88D67",
+    "#FCFC62",
+    "#BBD686",
+    "#B5D99C",
+    "#008148",
+    "#034732",
+];
+
 let gameSpeed = 1000 / 60;
 let interval = setInterval(gameHandler, gameSpeed);
+let lastSpawnTime = Date.now();
+const SPAWN_INTERVAL = 2400; // 5 secs
+let deltaTime, currentTime;
 
 // Physic variables
 let gravity = 1;
@@ -70,9 +98,9 @@ class Ball {
 }
 
 let ballList = [];
-ballList.push(new Ball(200, 40, 40, "blue", 10, -10));
-ballList.push(new Ball(250, 200, 45, "red", -10, -40));
-ballList.push(new Ball(150, 10, 50, "orange", 20, -30));
+// ballList.push(new Ball(200, 40, 40, "blue", 10, -10));
+// ballList.push(new Ball(250, 200, 45, "red", -10, -40));
+// ballList.push(new Ball(150, 10, 50, "orange", 20, -30));
 
 let cursor = {
     position: {
@@ -92,53 +120,32 @@ function gameHandler() {
     painter.clearRect(0, 0, canvas.width, canvas.height);
     drawCursor(cursor);
     updateCursor();
-    drawBall();
-}
 
-function drawBall() {
     for (let i = 0; i < ballList.length; i++) {
         ballList[i].draw();
         ballList[i].update();
     }
+
+    if (Date.now() - lastSpawnTime >= SPAWN_INTERVAL) {
+        spawnBall();
+        console.log("spawn");
+        lastSpawnTime = Date.now();
+    }
 }
 
-function spawnBall() {}
-
-// function drawBall(ball) {
-//     // Draw Ball
-//     painter.beginPath();
-//     painter.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2, false);
-//     painter.arc(ball.x, ball.y, 1, 0, Math.PI * 2);
-//     painter.fillStyle = ball.color;
-//     painter.fill();
-//     painter.closePath();
-
-//     // Handle Ball Movement
-//     ball.x += ball.moveX;
-//     ball.y += ball.moveX;
-//     ball.moveX += gravity;
-
-//     // Collisions
-//     // Ground
-//     if (ball.y + ball.radius > canvas.height) {
-//         ball.verticalBounceCount += 1;
-//         if (ball.verticalBounceCount >= 3) {
-//         }
-//         ball.y = canvas.height - ball.radius;
-//         ball.moveX = -ball.moveX * groundFriction; // Bounce with some energy loss
-//     }
-//     // Left and Right Walls
-//     if (
-//         (ball.x + ball.radius > canvas.width && ball.moveX > 0) ||
-//         (ball.x <= ball.radius && ball.moveX < 0)
-//     ) {
-//         ball.horizontalBounceCount += 1;
-
-//         ball.moveX = -ball.moveX * horizontalFriction;
-//     }
-
-//     // console.log(canvas.width);
-// }
+function spawnBall() {
+    let ballRadius = RandomFromMinToMax(30, 50);
+    ballList.push(
+        new Ball(
+            RandomFromMinToMax(ballRadius, canvas.width * 0.8), // X possition
+            RandomFromMinToMax(ballRadius, canvas.height * 0.6), // Y possition
+            ballRadius,
+            colorList[RandomFromMinToMax(0, colorList.length)], // color
+            -RandomFromMinToMax(5, 32), // X velocity
+            -RandomFromMinToMax(5, 32), // Y velocity
+        ),
+    );
+}
 
 function drawCursor(cursor) {
     painter.beginPath();
@@ -229,16 +236,3 @@ function KeyReleasedHandler(k) {
         SpacePressed = false;
     }
 }
-
-// let ball = {
-//     x: 100,
-//     y: 100,
-//     radius: 50,
-//     color: "#54ef61",
-//     moveX{
-//         x: 8,
-//         y: -8,
-//     },
-//     horizontalBounceCount: 0,
-//     verticalBounceCount: 0,
-// };

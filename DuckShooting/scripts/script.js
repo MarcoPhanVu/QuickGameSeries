@@ -1,3 +1,6 @@
+import { Ball } from "./Ball.js";
+import { Cursor } from "./Cursor.js";
+
 const canvas = document.getElementById("canvas");
 const painter = canvas.getContext("2d");
 
@@ -45,8 +48,8 @@ let deltaTime, currentTime;
 let gravity = 2;
 let groundFriction = 0.9;
 let horizontalFriction = 0.9;
-let MAX_BOUNCE_VERTICAL = 6;
-let MAX_BOUNCE_HORIZONTAL = 6;
+let MAX_BOUNCE_VERTICAL = 10;
+let MAX_BOUNCE_HORIZONTAL = 10;
 
 // Interactions
 let RightPressed = false;
